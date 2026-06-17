@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#2d4ec8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
 <title>엠바고 — MBA-GO</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
@@ -203,6 +205,22 @@ body{
 .info-card .ic-title{font-weight:700;font-size:14.5px;}
 .info-card .ic-desc{font-size:12.5px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
 .info-card .chev{color:#c4c9d4;font-size:18px;}
+/* ===== 원우(members) ===== */
+.seg{display:flex;gap:6px;background:#eef0f5;padding:4px;border-radius:12px;margin-bottom:13px;}
+.seg-btn{flex:1;border:0;background:none;padding:9px 0;border-radius:9px;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;}
+.seg-btn.active{background:#fff;color:var(--brand);box-shadow:0 1px 4px rgba(24,33,77,.12);}
+.seg-btn .cnt{font-size:11px;opacity:.65;font-weight:600;}
+.search-wrap{position:relative;margin-bottom:12px;}
+.search-input{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px 12px 38px;font-size:14px;font-family:inherit;color:var(--text);outline:none;}
+.search-input:focus{border-color:var(--brand);}
+.search-wrap::before{content:"\1F50D";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.55;}
+.wonu-meta{font-size:12px;color:var(--muted);margin:0 2px 10px;}
+.wonu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
+.wonu-card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 12px;box-shadow:var(--shadow);min-width:0;}
+.wonu-card .wn-name{font-weight:800;font-size:14.5px;letter-spacing:-.3px;}
+.wonu-card .wn-birth{font-size:10px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:2px 6px;border-radius:20px;margin-left:5px;white-space:nowrap;}
+.wonu-card .wn-co{font-size:12px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wonu-empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0;}
 /* ===== Benefits ===== */
 .benefit-card{
   background:var(--card);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
@@ -265,8 +283,25 @@ body{
     <!-- TAB 3: INFO -->
     <section class="tab-page section-pad" id="page-info">
       <div class="page-title">정보</div>
-      <div class="chips" id="info-chips"></div>
-      <div id="info-list"></div>
+      <div class="seg" id="info-seg">
+        <button class="seg-btn active" data-seg="wonu">원우</button>
+        <button class="seg-btn" data-seg="life">생활정보</button>
+      </div>
+      <div id="info-wonu">
+        <div class="seg" id="wonu-cohort">
+          <button class="seg-btn active" data-co="17">17기<span class="cnt" id="cnt17"></span></button>
+          <button class="seg-btn" data-co="18">18기<span class="cnt" id="cnt18"></span></button>
+        </div>
+        <div class="search-wrap">
+          <input id="wonu-search" class="search-input" type="search" placeholder="이름·회사 검색" autocomplete="off">
+        </div>
+        <div class="wonu-meta" id="wonu-count"></div>
+        <div class="wonu-grid" id="wonu-list"></div>
+      </div>
+      <div id="info-life" style="display:none">
+        <div class="chips" id="info-chips"></div>
+        <div id="info-list"></div>
+      </div>
     </section>
 
     <!-- TAB 4: BENEFITS -->
@@ -360,6 +395,249 @@ let BENEFITS = [
 ];
 
 /* ================= 유틸 ================= */
+/* ===== 원우 명단 (17기: 이름·출생연도·회사 / 18기: 이름) ===== */
+const MEMBERS=[
+{c:'17',n:'고영호',b:'69',co:'이엠티'},
+{c:'17',n:'김승찬',b:'69',co:'한국벤처경영원'},
+{c:'17',n:'이성재',b:'72',co:'에어퍼스트'},
+{c:'17',n:'강마이클',b:'74',co:'삼성전자'},
+{c:'17',n:'김경덕',b:'74',co:'케이디헬스케어'},
+{c:'17',n:'최지현',b:'74',co:'삼진제약'},
+{c:'17',n:'노양우',b:'75',co:'삼성전자'},
+{c:'17',n:'정상구',b:'75',co:'세메스'},
+{c:'17',n:'최재영',b:'75',co:'에이치브이엠'},
+{c:'17',n:'강형부',b:'76',co:'케이피에프'},
+{c:'17',n:'심요성',b:'76',co:'현대모비스'},
+{c:'17',n:'정지훈',b:'76',co:'이수화학'},
+{c:'17',n:'계성경',b:'77',co:'컨트롤유니온코리아'},
+{c:'17',n:'이재원',b:'77',co:'삼성전자'},
+{c:'17',n:'김준범',b:'78',co:'GS글로벌'},
+{c:'17',n:'김현진',b:'78',co:'삼성전자'},
+{c:'17',n:'나영일',b:'78',co:'이도'},
+{c:'17',n:'문현율',b:'78',co:'삼성디스플레이'},
+{c:'17',n:'변성환',b:'78',co:'단군소프트'},
+{c:'17',n:'윤방한',b:'78',co:'삼성전자'},
+{c:'17',n:'윤양빈',b:'78',co:'시디즈'},
+{c:'17',n:'윤희중',b:'78',co:'아이트로닉스'},
+{c:'17',n:'이재길',b:'78',co:'코리안리재보험'},
+{c:'17',n:'이정석',b:'78',co:'송정회계법인'},
+{c:'17',n:'최택진',b:'78',co:'현대모비스'},
+{c:'17',n:'김민기',b:'79',co:'삼성디스플레이'},
+{c:'17',n:'김석희',b:'79',co:'SK플라즈마'},
+{c:'17',n:'김하동',b:'79',co:'삼성SDI'},
+{c:'17',n:'박진선',b:'79',co:'삼성전기'},
+{c:'17',n:'박형준',b:'79',co:'에쓰엔씨코퍼레이션'},
+{c:'17',n:'이상훈',b:'79',co:'이노배어케이티 아이파이어드히터스'},
+{c:'17',n:'이의현',b:'79',co:'한국전력공사'},
+{c:'17',n:'전대식',b:'79',co:'삼성전자'},
+{c:'17',n:'권오현',b:'80',co:'삼성전자'},
+{c:'17',n:'김낙신',b:'80',co:'삼성전자'},
+{c:'17',n:'김상명',b:'80',co:'삼성전자'},
+{c:'17',n:'김유리',b:'80',co:'삼성전자'},
+{c:'17',n:'김유미',b:'80',co:'제이에스티나'},
+{c:'17',n:'우성호',b:'80',co:'삼성에스원'},
+{c:'17',n:'유혜란',b:'80',co:'삼성전자'},
+{c:'17',n:'이임연',b:'80',co:'삼성전자'},
+{c:'17',n:'이희용',b:'80',co:'퍼시스'},
+{c:'17',n:'홍영기',b:'80',co:'삼성전자'},
+{c:'17',n:'김민수',b:'81',co:'액시스소프트'},
+{c:'17',n:'김성민',b:'81',co:'삼성물산'},
+{c:'17',n:'김충일',b:'81',co:'삼성전자'},
+{c:'17',n:'김효선',b:'81',co:'삼성전자'},
+{c:'17',n:'문호상',b:'81',co:'삼성전자'},
+{c:'17',n:'이창우',b:'81',co:'세은상역'},
+{c:'17',n:'장석영',b:'81',co:'현대모비스'},
+{c:'17',n:'전문규',b:'81',co:'삼성SDI'},
+{c:'17',n:'조윤희',b:'81',co:'삼성전자'},
+{c:'17',n:'최세영',b:'81',co:'케이티앤지'},
+{c:'17',n:'최형수',b:'81',co:'대상웰라이프'},
+{c:'17',n:'현진',b:'81',co:'삼성물산'},
+{c:'17',n:'공태완',b:'82',co:'JB금융지주'},
+{c:'17',n:'김길란',b:'82',co:'한솔케미칼'},
+{c:'17',n:'김재유',b:'82',co:'팬직'},
+{c:'17',n:'김지동',b:'82',co:'지에스글로벌'},
+{c:'17',n:'류윤교',b:'82',co:'리만코리아'},
+{c:'17',n:'박선민',b:'82',co:'삼성물산'},
+{c:'17',n:'윤석진',b:'82',co:'회계법인현'},
+{c:'17',n:'윤성원',b:'82',co:'케이티앤지'},
+{c:'17',n:'이준성',b:'82',co:'삼성웰스토리'},
+{c:'17',n:'이창선',b:'82',co:'KB국민은행'},
+{c:'17',n:'이한수',b:'82',co:'스톤브릿지캐피탈 (스톤브릿지홀딩스)'},
+{c:'17',n:'이형준',b:'82',co:'삼성전자'},
+{c:'17',n:'천호출',b:'82',co:'삼성화재해상보험'},
+{c:'17',n:'최수정',b:'82',co:'삼성SDI'},
+{c:'17',n:'강병주',b:'83',co:'삼성중공업'},
+{c:'17',n:'김남강',b:'83',co:'삼성전자'},
+{c:'17',n:'김성만',b:'83',co:'한국기능공사'},
+{c:'17',n:'백승현',b:'83',co:'대영전자'},
+{c:'17',n:'이경수',b:'83',co:'SK가스'},
+{c:'17',n:'이승규',b:'83',co:'영진'},
+{c:'17',n:'이지은',b:'83',co:'한국화이자제약'},
+{c:'17',n:'이희연',b:'83',co:'케이티앤지'},
+{c:'17',n:'정근수',b:'83',co:'현대모비스'},
+{c:'17',n:'정민철',b:'83',co:'다보오에스티'},
+{c:'17',n:'황준호',b:'83',co:'중소기업은행'},
+{c:'17',n:'백수용',b:'84',co:'아이비케이캐피탈'},
+{c:'17',n:'성대훈',b:'84',co:'동서'},
+{c:'17',n:'심혜진',b:'84',co:'LGCNS'},
+{c:'17',n:'오진영',b:'84',co:'현대모비스'},
+{c:'17',n:'이기원',b:'84',co:'SK가스'},
+{c:'17',n:'이종준',b:'84',co:'삼성바이오에피스'},
+{c:'17',n:'이진원',b:'84',co:'LG유플러스'},
+{c:'17',n:'전가현',b:'84',co:'삼성전자'},
+{c:'17',n:'최지혜',b:'84',co:'삼성전자'},
+{c:'17',n:'김영준',b:'85',co:'삼성물산'},
+{c:'17',n:'박성진',b:'85',co:'제일메디칼코퍼레이션'},
+{c:'17',n:'신미향',b:'85',co:'삼성디스플레이'},
+{c:'17',n:'오성균',b:'85',co:'광주은행'},
+{c:'17',n:'이희라',b:'85',co:'삼성전자'},
+{c:'17',n:'전태영',b:'85',co:'웰투시인베스트먼트'},
+{c:'17',n:'조무성',b:'85',co:'삼성물산'},
+{c:'17',n:'최문실',b:'85',co:'삼성SDS'},
+{c:'17',n:'허정현',b:'85',co:'LF'},
+{c:'17',n:'권혁호',b:'86',co:'디팜스테크'},
+{c:'17',n:'박준석',b:'86',co:'삼성전자'},
+{c:'17',n:'위현준',b:'86',co:'GC녹십자'},
+{c:'17',n:'이민화',b:'86',co:'현대모비스'},
+{c:'17',n:'이종윤',b:'86',co:'에스브이인베스트먼트'},
+{c:'17',n:'전승현',b:'86',co:'중소기업은행'},
+{c:'17',n:'김정아',b:'87',co:'삼성전자'},
+{c:'17',n:'김푸른',b:'87',co:'GS에너지'},
+{c:'17',n:'반성희',b:'87',co:'삼성전자'},
+{c:'17',n:'김종훈',b:'88',co:'삼성전자'},
+{c:'17',n:'윤상명',b:'88',co:'LG유플러스'},
+{c:'17',n:'이경재',b:'88',co:'마르스자산운용'},
+{c:'17',n:'이민구',b:'88',co:'삼성물산'},
+{c:'17',n:'이다인',b:'89',co:'LF'},
+{c:'17',n:'한태민',b:'89',co:'LG유플러스'},
+{c:'17',n:'서재웅',b:'90',co:'피씨디렉트'},
+{c:'17',n:'손영성',b:'90',co:'푸른인베스트먼트'},
+{c:'17',n:'김민수',b:'',co:'도드람양돈협동조합'},
+{c:'17',n:'박진호',b:'',co:'케이티앤지'},
+{c:'17',n:'신인규',b:'',co:'삼성물산'},
+{c:'17',n:'이경한',b:'',co:'법무법인(유한)지평'},
+{c:'17',n:'이창익',b:'',co:'삼성전자'},
+{c:'18',n:'강철지',b:'',co:''},
+{c:'18',n:'류주연',b:'',co:''},
+{c:'18',n:'윤정인',b:'',co:''},
+{c:'18',n:'최영수',b:'',co:''},
+{c:'18',n:'김민준',b:'',co:''},
+{c:'18',n:'김원영',b:'',co:''},
+{c:'18',n:'박화정',b:'',co:''},
+{c:'18',n:'송철기',b:'',co:''},
+{c:'18',n:'이재홍',b:'',co:''},
+{c:'18',n:'정상원',b:'',co:''},
+{c:'18',n:'강기훈',b:'',co:''},
+{c:'18',n:'구자명',b:'',co:''},
+{c:'18',n:'김경무',b:'',co:''},
+{c:'18',n:'김재환',b:'',co:''},
+{c:'18',n:'김혜인',b:'',co:''},
+{c:'18',n:'김동규',b:'',co:''},
+{c:'18',n:'함철우',b:'',co:''},
+{c:'18',n:'김은성',b:'',co:''},
+{c:'18',n:'이상오',b:'',co:''},
+{c:'18',n:'황재성',b:'',co:''},
+{c:'18',n:'서전우',b:'',co:''},
+{c:'18',n:'권철화',b:'',co:''},
+{c:'18',n:'김민정',b:'',co:''},
+{c:'18',n:'김솔잎',b:'',co:''},
+{c:'18',n:'김학렬',b:'',co:''},
+{c:'18',n:'박수빈',b:'',co:''},
+{c:'18',n:'유영민',b:'',co:''},
+{c:'18',n:'최혜진',b:'',co:''},
+{c:'18',n:'최호길',b:'',co:''},
+{c:'18',n:'김상무',b:'',co:''},
+{c:'18',n:'방명수',b:'',co:''},
+{c:'18',n:'양태준',b:'',co:''},
+{c:'18',n:'이우준',b:'',co:''},
+{c:'18',n:'하미량',b:'',co:''},
+{c:'18',n:'김유식',b:'',co:''},
+{c:'18',n:'박민우',b:'',co:''},
+{c:'18',n:'손연주',b:'',co:''},
+{c:'18',n:'송진우',b:'',co:''},
+{c:'18',n:'신승철',b:'',co:''},
+{c:'18',n:'이민중',b:'',co:''},
+{c:'18',n:'이석희',b:'',co:''},
+{c:'18',n:'임동연',b:'',co:''},
+{c:'18',n:'장재영',b:'',co:''},
+{c:'18',n:'정낙림',b:'',co:''},
+{c:'18',n:'정성연',b:'',co:''},
+{c:'18',n:'조대연',b:'',co:''},
+{c:'18',n:'조은성',b:'',co:''},
+{c:'18',n:'최고운',b:'',co:''},
+{c:'18',n:'최인원',b:'',co:''},
+{c:'18',n:'한성철',b:'',co:''},
+{c:'18',n:'한승엽',b:'',co:''},
+{c:'18',n:'함경식',b:'',co:''},
+{c:'18',n:'김지연',b:'',co:''},
+{c:'18',n:'김지훈',b:'',co:''},
+{c:'18',n:'노정훈',b:'',co:''},
+{c:'18',n:'박신영',b:'',co:''},
+{c:'18',n:'송준화',b:'',co:''},
+{c:'18',n:'임희원',b:'',co:''},
+{c:'18',n:'장선일',b:'',co:''},
+{c:'18',n:'전강훈',b:'',co:''},
+{c:'18',n:'정종헌',b:'',co:''},
+{c:'18',n:'최지일',b:'',co:''},
+{c:'18',n:'강동윤',b:'',co:''},
+{c:'18',n:'구름',b:'',co:''},
+{c:'18',n:'김영훈',b:'',co:''},
+{c:'18',n:'김우성',b:'',co:''},
+{c:'18',n:'김충성',b:'',co:''},
+{c:'18',n:'김호윤',b:'',co:''},
+{c:'18',n:'염현기',b:'',co:''},
+{c:'18',n:'유재은',b:'',co:''},
+{c:'18',n:'윤두환',b:'',co:''},
+{c:'18',n:'이동현',b:'',co:''},
+{c:'18',n:'임종완',b:'',co:''},
+{c:'18',n:'조주영',b:'',co:''},
+{c:'18',n:'최원호',b:'',co:''},
+{c:'18',n:'김동현',b:'',co:''},
+{c:'18',n:'김자민',b:'',co:''},
+{c:'18',n:'박대동',b:'',co:''},
+{c:'18',n:'박성훈',b:'',co:''},
+{c:'18',n:'손영우',b:'',co:''},
+{c:'18',n:'심우재',b:'',co:''},
+{c:'18',n:'양성현',b:'',co:''},
+{c:'18',n:'양일호',b:'',co:''},
+{c:'18',n:'여상완',b:'',co:''},
+{c:'18',n:'이기욱',b:'',co:''},
+{c:'18',n:'정미라',b:'',co:''},
+{c:'18',n:'조무성',b:'',co:''},
+{c:'18',n:'김규명',b:'',co:''},
+{c:'18',n:'박선아',b:'',co:''},
+{c:'18',n:'방준원',b:'',co:''},
+{c:'18',n:'성선익',b:'',co:''},
+{c:'18',n:'송기욱',b:'',co:''},
+{c:'18',n:'유지유',b:'',co:''},
+{c:'18',n:'윤샛별',b:'',co:''},
+{c:'18',n:'이영준',b:'',co:''},
+{c:'18',n:'강근일',b:'',co:''},
+{c:'18',n:'김나영',b:'',co:''},
+{c:'18',n:'김종완',b:'',co:''},
+{c:'18',n:'김희근',b:'',co:''},
+{c:'18',n:'박경배',b:'',co:''},
+{c:'18',n:'송영산',b:'',co:''},
+{c:'18',n:'이정아',b:'',co:''},
+{c:'18',n:'이철우',b:'',co:''},
+{c:'18',n:'장다예',b:'',co:''},
+{c:'18',n:'정지훈',b:'',co:''},
+{c:'18',n:'정희정',b:'',co:''},
+{c:'18',n:'최가람',b:'',co:''},
+{c:'18',n:'한우진',b:'',co:''},
+{c:'18',n:'김시후',b:'',co:''},
+{c:'18',n:'서현욱',b:'',co:''},
+{c:'18',n:'송대환',b:'',co:''},
+{c:'18',n:'이규린',b:'',co:''},
+{c:'18',n:'이윤지',b:'',co:''},
+{c:'18',n:'이태영',b:'',co:''},
+{c:'18',n:'정민수',b:'',co:''},
+{c:'18',n:'임백민',b:'',co:''},
+{c:'18',n:'정민기',b:'',co:''},
+{c:'18',n:'김혜인',b:'',co:''},
+{c:'18',n:'김윤수',b:'',co:''}
+];
+
 const $=s=>document.querySelector(s);
 const MONTHS=[]; // 2026-06 ~ 2026-12
 for(let m=5;m<=11;m++) MONTHS.push({y:2026,m});
@@ -584,12 +862,50 @@ document.querySelectorAll(".tabbar button").forEach(btn=>{
 });
 
 /* ================= 데이터 로드 & 초기 렌더 ================= */
+/* ===== 원우 명단 렌더/검색 ===== */
+let wonuCohort="17", wonuQuery="";
+function renderWonu(){
+  const c17=MEMBERS.filter(m=>m.c==="17").length, c18=MEMBERS.filter(m=>m.c==="18").length;
+  const e17=$("#cnt17"), e18=$("#cnt18");
+  if(e17) e17.textContent=" "+c17;
+  if(e18) e18.textContent=" "+c18;
+  const q=wonuQuery.trim().toLowerCase();
+  let list=MEMBERS.filter(m=>m.c===wonuCohort);
+  if(q) list=list.filter(m=>m.n.toLowerCase().includes(q)||(m.co&&m.co.toLowerCase().includes(q)));
+  const cnt=$("#wonu-count");
+  if(cnt) cnt.textContent = q ? (list.length+"명 검색됨") : ("총 "+list.length+"명");
+  const grid=$("#wonu-list");
+  if(!grid) return;
+  if(!list.length){ grid.innerHTML='<div class="wonu-empty">검색 결과가 없어요.</div>'; return; }
+  grid.innerHTML=list.map(m=>`
+    <div class="wonu-card">
+      <div><span class="wn-name">${m.n}</span>${m.b?`<span class="wn-birth">${m.b}년생</span>`:""}</div>
+      ${m.co?`<div class="wn-co">${m.co}</div>`:""}
+    </div>`).join("");
+}
+function setupWonu(){
+  document.querySelectorAll("#info-seg .seg-btn").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("#info-seg .seg-btn").forEach(x=>x.classList.toggle("active",x===b));
+    const seg=b.dataset.seg;
+    $("#info-wonu").style.display = seg==="wonu"?"":"none";
+    $("#info-life").style.display = seg==="life"?"":"none";
+    $(".screen").scrollTop=0;
+  });
+  document.querySelectorAll("#wonu-cohort .seg-btn").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("#wonu-cohort .seg-btn").forEach(x=>x.classList.toggle("active",x===b));
+    wonuCohort=b.dataset.co; renderWonu(); $(".screen").scrollTop=0;
+  });
+  const si=$("#wonu-search");
+  if(si) si.addEventListener("input",e=>{ wonuQuery=e.target.value; renderWonu(); });
+}
+
 function renderAll(){
   renderCalendar();
   renderNotices();
   renderInfoChips();
   renderInfoList();
   renderBenefits();
+  renderWonu();
 }
 async function loadData(){
   renderAll(); // 우선 샘플/기존 데이터로 즉시 표시
@@ -606,6 +922,7 @@ async function loadData(){
     console.warn("구글 시트 불러오기 실패 — 샘플 데이터를 표시합니다.", e);
   }
 }
+setupWonu();
 loadData();
 </script>
 </body>

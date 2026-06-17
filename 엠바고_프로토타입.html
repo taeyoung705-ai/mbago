@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2d4ec8">
+<title>엠바고 — MBA-GO</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --brand:#2d4ec8;        /* 포인트 컬러 (학교 상징색으로 교체 가능) */
+  --brand-soft:#eaeefc;
+  --brand-dark:#1f3795;
+  --accent:#f3a712;
+  --bg:#f5f6f9;
+  --card:#ffffff;
+  --text:#1a1d28;
+  --muted:#7a8194;
+  --line:#eceef3;
+  --danger:#e2483d;
+  --ok:#1ca672;
+  --shadow:0 4px 16px rgba(24,33,77,.08);
+  --shadow-lg:0 12px 40px rgba(24,33,77,.18);
+  --maxw:480px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  background:#e9ebf1;color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+.app{
+  max-width:var(--maxw);margin:0 auto;min-height:100vh;background:var(--bg);
+  position:relative;display:flex;flex-direction:column;
+  box-shadow:0 0 40px rgba(0,0,0,.06);overflow:hidden;
+}
+/* ===== Header ===== */
+.appbar{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  color:#fff;padding:16px 18px 14px;
+}
+.appbar .logo{display:flex;align-items:center;gap:9px;}
+.appbar .logo .mark{
+  width:30px;height:30px;border-radius:9px;background:#fff;color:var(--brand);
+  display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:-.5px;
+}
+.appbar .logo b{font-size:19px;font-weight:800;letter-spacing:-.5px;}
+.appbar .logo small{font-size:11px;opacity:.8;font-weight:500;margin-left:2px;}
+.appbar .sub{font-size:12px;opacity:.85;margin-top:7px;font-weight:400;}
+/* ===== Tab content area ===== */
+.screen{flex:1;overflow-y:auto;padding-bottom:78px;}
+.tab-page{display:none;animation:fade .25s ease;}
+.tab-page.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.section-pad{padding:16px;}
+.page-title{font-size:18px;font-weight:800;margin:4px 2px 14px;letter-spacing:-.4px;}
+/* ===== Bottom Tab Bar ===== */
+.tabbar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--maxw);
+  background:#fff;border-top:1px solid var(--line);
+  display:flex;z-index:40;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar button{
+  flex:1;border:0;background:none;padding:6px 0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
+  font-family:inherit;
+}
+.tabbar button .ic{font-size:20px;line-height:1;}
+.tabbar button .lb{font-size:11px;font-weight:600;}
+.tabbar button.active{color:var(--brand);}
+/* ===== Calendar ===== */
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 14px;}
+.cal-head .mtitle{font-size:18px;font-weight:800;letter-spacing:-.4px;}
+.cal-head .nav{display:flex;gap:6px;}
+.cal-head .nav button{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+  background:#fff;font-size:16px;cursor:pointer;color:var(--text);
+}
+.cal-grid{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:8px 6px 10px;}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+.cal-dow span{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:5px 0;}
+.cal-dow span:first-child{color:var(--danger);}
+.cal-dow span:last-child{color:var(--brand);}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{
+  min-height:74px;border-radius:9px;display:flex;flex-direction:column;align-items:stretch;
+  padding:4px 3px 3px;font-size:14px;cursor:pointer;position:relative;
+  color:var(--text);font-weight:500;border:1.5px solid var(--line);background:#fcfcfe;overflow:hidden;
+}
+.cal-cell.empty{cursor:default;background:transparent;border-color:transparent;}
+.cal-cell .dnum{font-size:12px;font-weight:700;text-align:center;line-height:1.4;margin-bottom:2px;color:var(--muted);}
+.cal-cell.sun .dnum{color:var(--danger);}
+.cal-cell.sat .dnum{color:var(--brand);}
+.cal-cell.today{background:var(--brand-soft);border-color:var(--brand);}
+.cal-cell.today .dnum{color:var(--brand);}
+.cal-cell.sel{box-shadow:0 0 0 2px var(--brand) inset;}
+.cal-evt{
+  font-size:9.5px;line-height:1.25;font-weight:600;color:#fff;border-radius:4px;
+  padding:1px 3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cal-evt.evt-수업{background:var(--brand);}
+.cal-evt.evt-행사{background:var(--accent);color:#5a3d00;}
+.cal-evt.evt-시험{background:var(--danger);}
+.cal-evt.evt-모임{background:var(--ok);}
+.cal-more{font-size:9px;font-weight:700;color:var(--muted);text-align:center;margin-top:auto;}
+.cal-hint{text-align:center;color:var(--muted);font-size:12px;margin-top:12px;}
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+.legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+/* ===== Bottom sheet ===== */
+.sheet-backdrop,.modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,24,45,.45);z-index:50;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  display:flex;justify-content:center;
+}
+.sheet-backdrop.show,.modal-backdrop.show{opacity:1;pointer-events:auto;}
+.sheet{
+  position:absolute;bottom:0;width:100%;max-width:var(--maxw);
+  background:#fff;border-radius:22px 22px 0 0;padding:10px 16px 28px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);
+  max-height:72vh;overflow-y:auto;
+}
+.sheet-backdrop.show .sheet{transform:translateY(0);}
+.grip{width:42px;height:5px;border-radius:3px;background:#dcdfe8;margin:4px auto 12px;}
+.sheet h3{margin:2px 2px 12px;font-size:16px;font-weight:800;}
+.evt-item{
+  display:flex;gap:12px;padding:13px 12px;border-radius:14px;background:var(--bg);
+  margin-bottom:9px;cursor:pointer;align-items:center;border:1px solid var(--line);
+}
+.evt-item .time{font-size:12px;font-weight:700;color:var(--brand);min-width:46px;text-align:center;}
+.evt-item .ei-body{flex:1;min-width:0;}
+.evt-item .ei-title{font-weight:700;font-size:14px;}
+.evt-item .ei-meta{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.evt-item .chev{color:var(--muted);font-size:16px;}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.tag.수업{background:var(--brand-soft);color:var(--brand);}
+.tag.행사{background:#fef0d4;color:#b9770a;}
+.tag.시험{background:#fde0de;color:var(--danger);}
+.tag.모임{background:#d8f3e8;color:var(--ok);}
+.tag.학사{background:var(--brand-soft);color:var(--brand);}
+.tag.긴급{background:#fde0de;color:var(--danger);}
+.tag.일반{background:#eceef3;color:#5b6478;}
+.empty-state{text-align:center;color:var(--muted);font-size:13px;padding:26px 0;}
+/* ===== Modal ===== */
+.modal{
+  position:relative;align-self:center;margin:auto;width:calc(100% - 36px);max-width:430px;
+  background:#fff;border-radius:20px;overflow:hidden;
+  transform:translateY(16px) scale(.97);opacity:0;transition:all .26s cubic-bezier(.22,1,.36,1);
+  max-height:84vh;display:flex;flex-direction:column;
+}
+.modal-backdrop.show .modal{transform:none;opacity:1;}
+.modal .mhero{height:8px;background:linear-gradient(90deg,var(--brand),var(--brand-dark));}
+.modal .mhero.img{height:150px;background-size:cover;background-position:center;}
+.modal .mbody{padding:20px 20px 8px;overflow-y:auto;}
+.modal .mclose{
+  position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.92);border:0;font-size:17px;cursor:pointer;z-index:2;color:#444;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.modal h2{font-size:19px;font-weight:800;margin:8px 0 8px;letter-spacing:-.4px;line-height:1.35;}
+.modal .mmeta{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:13px;margin-bottom:14px;}
+.modal .mmeta b{color:var(--text);font-weight:600;}
+.modal .mtext{font-size:14px;line-height:1.7;color:#384055;white-space:pre-wrap;}
+.modal .mrow{display:flex;gap:9px;align-items:center;font-size:13.5px;padding:9px 0;border-top:1px solid var(--line);}
+.modal .mrow .k{color:var(--muted);min-width:54px;}
+.modal .mrow .v{color:var(--text);font-weight:500;flex:1;}
+.modal .mfoot{padding:14px 20px 20px;}
+.btn{
+  display:block;width:100%;text-align:center;background:var(--brand);color:#fff;border:0;
+  padding:14px;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;
+  text-decoration:none;font-family:inherit;
+}
+/* ===== Notice feed ===== */
+.notice-card{
+  background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:15px 16px;
+  margin-bottom:12px;cursor:pointer;border:1px solid var(--line);position:relative;
+}
+.notice-card.pin{border:1.5px solid var(--brand);}
+.notice-card .nc-top{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.notice-card .nc-date{margin-left:auto;font-size:12px;color:var(--muted);}
+.notice-card .nc-title{font-size:15.5px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px;line-height:1.4;}
+.notice-card .nc-title .pinico{color:var(--brand);margin-right:3px;}
+.notice-card .nc-prev{font-size:13.5px;color:#5e6678;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.notice-card .nc-thumb{width:100%;height:140px;border-radius:12px;margin-top:11px;background-size:cover;background-position:center;}
+/* ===== Info ===== */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 14px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{
+  white-space:nowrap;border:1px solid var(--line);background:#fff;color:#5b6478;
+  padding:8px 15px;border-radius:22px;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;font-family:inherit;
+}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+.info-card{
+  background:var(--card);border-radius:15px;box-shadow:var(--shadow);padding:14px 15px;
+  margin-bottom:11px;cursor:pointer;display:flex;gap:13px;align-items:center;border:1px solid var(--line);
+}
+.info-card .ic-emoji{width:46px;height:46px;border-radius:13px;background:var(--brand-soft);display:grid;place-items:center;font-size:23px;flex:none;}
+.info-card .ic-body{flex:1;min-width:0;}
+.info-card .ic-title{font-weight:700;font-size:14.5px;}
+.info-card .ic-desc{font-size:12.5px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+.info-card .chev{color:#c4c9d4;font-size:18px;}
+/* ===== Benefits ===== */
+.benefit-card{
+  background:var(--card);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
+  margin-bottom:14px;cursor:pointer;border:1px solid var(--line);
+}
+.benefit-card .bc-banner{
+  height:120px;background-size:cover;background-position:center;position:relative;
+  display:flex;align-items:flex-end;padding:12px;
+}
+.benefit-card .bc-banner .bc-disc{
+  background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:13px;padding:5px 11px;border-radius:20px;backdrop-filter:blur(2px);
+}
+.benefit-card .bc-body{padding:13px 15px 15px;}
+.benefit-card .bc-name{font-weight:800;font-size:15px;letter-spacing:-.3px;}
+.benefit-card .bc-prov{font-size:12.5px;color:var(--muted);margin:3px 0 7px;}
+.benefit-card .bc-sum{font-size:13px;color:#5e6678;line-height:1.5;}
+.benefit-card .bc-exp{display:inline-block;margin-top:9px;font-size:11px;font-weight:700;color:var(--ok);background:#d8f3e8;padding:3px 9px;border-radius:20px;}
+.note{font-size:11.5px;color:var(--muted);text-align:center;padding:6px 20px 20px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <div class="logo">
+      <div class="mark">M</div>
+      <b>엠바고</b><small>MBA-GO</small>
+    </div>
+    <div class="sub" id="appbar-sub">원우들의 학교생활을 한 곳에</div>
+  </header>
+
+  <div class="screen">
+    <!-- TAB 1: CALENDAR -->
+    <section class="tab-page active section-pad" id="page-cal">
+      <div class="cal-head">
+        <div class="mtitle" id="cal-title">2026년 6월</div>
+        <div class="nav">
+          <button id="cal-prev">‹</button>
+          <button id="cal-next">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-swipe">
+        <div class="cal-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="cal-cells" id="cal-cells"></div>
+        <div class="legend">
+          <span><i style="background:var(--brand)"></i>수업</span>
+          <span><i style="background:var(--accent)"></i>행사</span>
+          <span><i style="background:var(--danger)"></i>시험</span>
+          <span><i style="background:var(--ok)"></i>모임</span>
+        </div>
+      </div>
+      <div class="cal-hint">날짜를 누르면 그날의 일정이 떠요 · 좌우로 밀면 달이 넘어가요</div>
+    </section>
+
+    <!-- TAB 2: NOTICES -->
+    <section class="tab-page section-pad" id="page-notice">
+      <div class="page-title">공지사항</div>
+      <div id="notice-list"></div>
+    </section>
+
+    <!-- TAB 3: INFO -->
+    <section class="tab-page section-pad" id="page-info">
+      <div class="page-title">정보</div>
+      <div class="chips" id="info-chips"></div>
+      <div id="info-list"></div>
+    </section>
+
+    <!-- TAB 4: BENEFITS -->
+    <section class="tab-page section-pad" id="page-benefit">
+      <div class="page-title">원우 혜택</div>
+      <div id="benefit-list"></div>
+      <div class="note">제휴 혜택은 원우증 제시 후 이용해 주세요. 내용은 변경될 수 있어요.</div>
+    </section>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="tabbar">
+    <button class="active" data-tab="cal"><span class="ic">📅</span><span class="lb">캘린더</span></button>
+    <button data-tab="notice"><span class="ic">📢</span><span class="lb">공지</span></button>
+    <button data-tab="info"><span class="ic">ℹ️</span><span class="lb">정보</span></button>
+    <button data-tab="benefit"><span class="ic">🎁</span><span class="lb">혜택</span></button>
+  </nav>
+</div>
+
+<!-- Bottom Sheet (day events) -->
+<div class="sheet-backdrop" id="sheet-bd">
+  <div class="sheet" id="sheet">
+    <div class="grip"></div>
+    <h3 id="sheet-title">일정</h3>
+    <div id="sheet-list"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal-bd">
+  <div class="modal" id="modal">
+    <button class="mclose" id="modal-close">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+/* ================= 설정 =================
+   구글 시트 연동 후, 아래 API_URL 에 Apps Script 웹앱(/exec) 주소를 붙여넣으세요.
+   비워두면 아래 샘플 데이터로 작동합니다. */
+const CONFIG = { API_URL: "" };
+
+/* ================= 샘플(기본) 데이터 — 시트 연동 시 자동으로 대체됩니다 ================= */
+let EVENTS = [
+  {date:"2026-06-18", start:"19:00", end:"22:00", title:"재무관리 3주차", cat:"수업", place:"경영관 401", desc:"사전과제(케이스 요약) 제출 필수. 강의 후 조별 토론이 있습니다.", link:""},
+  {date:"2026-06-20", start:"10:00", end:"17:00", title:"기수 전체 워크숍", cat:"행사", place:"양평 리조트", desc:"1박 2일 워크숍 1일차. 셔틀버스는 학교 정문에서 오전 9시 출발합니다.", link:""},
+  {date:"2026-06-25", start:"19:00", end:"21:00", title:"마케팅전략 중간고사", cat:"시험", place:"경영관 305", desc:"오픈북. 계산기 지참. A4 한 장 요약 노트 허용.", link:""},
+  {date:"2026-06-27", start:"18:30", end:"", title:"6월 원우 정기 모임", cat:"모임", place:"강남 OO식당", desc:"회비 3만원. 참석 여부는 총무에게 알려주세요.", link:""},
+  {date:"2026-07-04", start:"19:00", end:"22:00", title:"조직행동론 1주차", cat:"수업", place:"경영관 402", desc:"교재 1~2장 예습.", link:""},
+  {date:"2026-07-11", start:"14:00", end:"18:00", title:"리더십 특강 (외부 연사)", cat:"행사", place:"대강당", desc:"前 대기업 CEO 초청 특강. 사전 신청자 우선 입장.", link:""},
+  {date:"2026-07-18", start:"19:00", end:"21:00", title:"재무관리 기말고사", cat:"시험", place:"경영관 401", desc:"전 범위. 계산기 필수.", link:""},
+  {date:"2026-08-08", start:"10:00", end:"16:00", title:"하계 MT", cat:"모임", place:"가평", desc:"가족 동반 가능. 바베큐 준비.", link:""},
+  {date:"2026-08-22", start:"19:00", end:"22:00", title:"경영전략 1주차", cat:"수업", place:"경영관 401", desc:"케이스 스터디 시작.", link:""},
+  {date:"2026-09-05", start:"13:00", end:"18:00", title:"산학협력 세미나", cat:"행사", place:"컨벤션홀", desc:"파트너 기업 부스 운영.", link:""},
+  {date:"2026-09-19", start:"19:00", end:"21:00", title:"경영전략 중간고사", cat:"시험", place:"경영관 401", desc:"케이스 분석 서술형.", link:""},
+  {date:"2026-10-10", start:"09:00", end:"18:00", title:"글로벌 모듈 (해외연수 설명회)", cat:"행사", place:"국제관", desc:"해외연수 일정 및 비용 안내.", link:""},
+  {date:"2026-10-24", start:"18:30", end:"", title:"가을 원우 친목 행사", cat:"모임", place:"한강 크루즈", desc:"드레스코드: 캐주얼.", link:""},
+  {date:"2026-11-07", start:"19:00", end:"22:00", title:"창업론 특강", cat:"수업", place:"경영관 403", desc:"스타트업 대표 멘토링.", link:""},
+  {date:"2026-11-21", start:"10:00", end:"17:00", title:"졸업논문 중간 발표", cat:"행사", place:"세미나실 A·B", desc:"조별 15분 발표 + Q&A.", link:""},
+  {date:"2026-12-05", start:"19:00", end:"21:00", title:"종합시험", cat:"시험", place:"경영관 401", desc:"전 과목 종합. 자세한 범위는 공지 참고.", link:""},
+  {date:"2026-12-12", start:"18:00", end:"", title:"송년의 밤 & 수료식 리허설", cat:"모임", place:"호텔 그랜드볼룸", desc:"기수 전체 참석 권장. 정장 착용.", link:""},
+  {date:"2026-12-19", start:"17:00", end:"", title:"수료식", cat:"행사", place:"대강당", desc:"가족 초대 가능. 가운 대여는 행정실에서.", link:""},
+];
+
+let NOTICES = [
+  {date:"2026-06-16", cat:"긴급", pin:true, title:"6/20 워크숍 셔틀버스 시간 변경 안내", body:"6월 20일 기수 워크숍 셔틀버스 출발 시간이 오전 9시 30분에서 9시로 변경되었습니다.\n\n학교 정문 앞에서 탑승하시며, 정시 출발하니 늦지 않게 도착해 주세요. 개별 차량 이용 시 리조트 주차장 이용 가능합니다.", img:"", link:""},
+  {date:"2026-06-15", cat:"학사", pin:true, title:"2학기 수강신청 일정 안내", body:"2학기 수강신청은 7월 1일(수) 오전 10시부터 7월 5일(일) 자정까지 진행됩니다.\n\n학교 포털에서 신청 가능하며, 선택과목은 정원이 차면 마감되니 서둘러 주세요. 문의는 학사지원팀으로 부탁드립니다.", img:"", link:""},
+  {date:"2026-06-12", cat:"일반", pin:false, title:"원우 명부 업데이트 요청", body:"원우 수첩 제작을 위해 연락처와 소속 정보를 업데이트하고 있습니다. 변경 사항이 있으신 분은 6월 25일까지 총무에게 알려주세요.", img:"", link:""},
+  {date:"2026-06-08", cat:"행사", pin:false, title:"리더십 특강 사전신청 오픈 (7/11)", body:"7월 11일 외부 연사 초청 리더십 특강의 사전신청을 받습니다. 좌석이 한정되어 사전 신청자에게 우선 입장이 제공됩니다.", img:"", link:""},
+  {date:"2026-06-03", cat:"일반", pin:false, title:"주차 등록 안내", body:"교내 주차를 원하시는 원우는 차량 번호를 행정실에 등록해 주세요. 등록 차량은 야간 수업 시 무료 주차가 가능합니다.", img:"", link:""},
+];
+
+let INFO = [
+  {cat:"맛집", emoji:"🍜", title:"정문 국밥집 'OO옥'", desc:"수업 전 든든하게, 도보 5분", addr:"서울 OO구 OO로 12", tel:"02-111-2222", link:""},
+  {cat:"맛집", emoji:"🍱", title:"경영관 지하 분식 'OO김밥'", desc:"빠른 한 끼, 포장 추천", addr:"경영관 B1", tel:"", link:""},
+  {cat:"맛집", emoji:"☕", title:"스터디 카페 'OO라운지'", desc:"조모임 하기 좋은 룸 보유", addr:"학교 후문 도보 3분", tel:"02-333-4444", link:""},
+  {cat:"학사", emoji:"📋", title:"수강신청 가이드", desc:"학기별 신청 절차와 팁", addr:"", tel:"학사지원팀 02-555-6666", link:""},
+  {cat:"학사", emoji:"🎓", title:"졸업/수료 요건", desc:"이수 학점과 논문 안내", addr:"", tel:"", link:""},
+  {cat:"시설", emoji:"🅿️", title:"교내 주차 안내", desc:"야간 수업 무료 주차 / 등록 필요", addr:"정문·후문 주차장", tel:"", link:""},
+  {cat:"시설", emoji:"💻", title:"도서관 & 그룹 스터디룸", desc:"예약제 운영, 22시까지", addr:"중앙도서관 3층", tel:"", link:""},
+  {cat:"교통", emoji:"🚇", title:"지하철·셔틀 정보", desc:"OO역 3번 출구, 셔틀 10분 간격", addr:"OO역 3번 출구", tel:"", link:""},
+  {cat:"동아리", emoji:"⛳", title:"원우 골프 동호회", desc:"매월 정기 라운딩", addr:"", tel:"운영진 문의", link:""},
+  {cat:"동아리", emoji:"🍷", title:"와인 소모임", desc:"격주 목요일 모임", addr:"", tel:"", link:""},
+];
+
+let BENEFITS = [
+  {name:"OO피트니스 50% 할인", prov:"OO피트니스 강남점", disc:"50% OFF", sum:"원우증 제시 시 등록비 반값, 1개월 무료 PT 체험 포함.", detail:"강남점·역삼점 공통 적용. 신규 등록 시 등록비 50% 할인되며, PT 1회 무료 체험권을 드립니다.\n\n이용방법: 데스크에서 '엠바고 원우'임을 알리고 원우증을 제시하세요.", exp:"2026-12-31", color:"#2d4ec8", link:""},
+  {name:"OO호텔 다이닝 15% 할인", prov:"OO호텔", disc:"15% OFF", sum:"호텔 레스토랑·라운지 식음료 15% 할인.", detail:"원우 본인 포함 최대 4인까지 적용됩니다. 예약 시 '엠바고 제휴'로 말씀해 주세요.", exp:"2026-12-31", color:"#8a6d3b", link:""},
+  {name:"교보문고 도서 10% 적립", prov:"교보문고", disc:"10% 적립", sum:"경영/자기계발 도서 추가 적립.", detail:"제휴 카드 발급 후 결제 시 적립됩니다. 온라인몰에서도 동일 적용.", exp:"2026-12-31", color:"#1ca672", link:""},
+  {name:"OO렌터카 주말 20% 할인", prov:"OO렌터카", disc:"20% OFF", sum:"주말·공휴일 렌터카 요금 할인.", detail:"앱에서 프로모션 코드 'MBAGO' 입력 시 적용됩니다. 일부 차종 제외.", exp:"2026-09-30", color:"#e2483d", link:""},
+];
+
+/* ================= 유틸 ================= */
+const $=s=>document.querySelector(s);
+const MONTHS=[]; // 2026-06 ~ 2026-12
+for(let m=5;m<=11;m++) MONTHS.push({y:2026,m});
+let curMonthIdx=0;
+const TODAY="2026-06-17";
+
+function eventsByDate(dateStr){return EVENTS.filter(e=>e.date===dateStr);}
+function pad(n){return String(n).padStart(2,"0");}
+
+/* ================= 캘린더 ================= */
+function renderCalendar(){
+  const {y,m}=MONTHS[curMonthIdx];
+  $("#cal-title").textContent=`${y}년 ${m+1}월`;
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const cells=$("#cal-cells");cells.innerHTML="";
+  for(let i=0;i<first;i++){const d=document.createElement("div");d.className="cal-cell empty";cells.appendChild(d);}
+  for(let d=1;d<=days;d++){
+    const dateStr=`${y}-${pad(m+1)}-${pad(d)}`;
+    const dow=new Date(y,m,d).getDay();
+    const cell=document.createElement("div");
+    cell.className="cal-cell"+(dow===0?" sun":"")+(dow===6?" sat":"")+(dateStr===TODAY?" today":"");
+    const evts=eventsByDate(dateStr).sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+    let blocks="";
+    const SHOW=2;
+    evts.slice(0,SHOW).forEach(e=>{
+      blocks+=`<div class="cal-evt evt-${e.cat}">${e.title}</div>`;
+    });
+    if(evts.length>SHOW) blocks+=`<div class="cal-more">+${evts.length-SHOW}</div>`;
+    cell.innerHTML=`<div class="dnum">${d}</div>${blocks}`;
+    cell.addEventListener("click",()=>openDaySheet(dateStr,cell));
+    cells.appendChild(cell);
+  }
+  $("#cal-prev").disabled=curMonthIdx===0;
+  $("#cal-next").disabled=curMonthIdx===MONTHS.length-1;
+  $("#cal-prev").style.opacity=curMonthIdx===0?.35:1;
+  $("#cal-next").style.opacity=curMonthIdx===MONTHS.length-1?.35:1;
+}
+function changeMonth(dir){
+  const n=curMonthIdx+dir;
+  if(n<0||n>=MONTHS.length)return;
+  curMonthIdx=n;renderCalendar();
+}
+$("#cal-prev").onclick=()=>changeMonth(-1);
+$("#cal-next").onclick=()=>changeMonth(1);
+
+// swipe
+let tsx=0,tsy=0;
+const swipeEl=$("#cal-swipe");
+swipeEl.addEventListener("touchstart",e=>{tsx=e.touches[0].clientX;tsy=e.touches[0].clientY;},{passive:true});
+swipeEl.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-tsx, dy=e.changedTouches[0].clientY-tsy;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)) changeMonth(dx<0?1:-1);
+},{passive:true});
+
+function openDaySheet(dateStr,cell){
+  document.querySelectorAll(".cal-cell.sel").forEach(c=>c.classList.remove("sel"));
+  if(cell) cell.classList.add("sel");
+  const [y,m,d]=dateStr.split("-").map(Number);
+  const dowNames=["일","월","화","수","목","금","토"];
+  const dow=dowNames[new Date(y,m-1,d).getDay()];
+  $("#sheet-title").textContent=`${m}월 ${d}일 (${dow}) 일정`;
+  const evts=eventsByDate(dateStr).sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+  const list=$("#sheet-list");
+  if(!evts.length){list.innerHTML='<div class="empty-state">이 날은 등록된 일정이 없어요.</div>';}
+  else{
+    list.innerHTML=evts.map((e,i)=>`
+      <div class="evt-item" data-date="${dateStr}" data-i="${i}">
+        <div class="time">${e.start||"종일"}</div>
+        <div class="ei-body">
+          <div class="ei-title">${e.title}</div>
+          <div class="ei-meta"><span class="tag ${e.cat}">${e.cat}</span> · ${e.place||"장소 미정"}</div>
+        </div>
+        <div class="chev">›</div>
+      </div>`).join("");
+    list.querySelectorAll(".evt-item").forEach(el=>{
+      el.onclick=()=>{const e=eventsByDate(el.dataset.date).sort((a,b)=>(a.start||"").localeCompare(b.start||""))[+el.dataset.i];openEventModal(e);};
+    });
+  }
+  showSheet(true);
+}
+
+/* ================= 공지 ================= */
+function renderNotices(){
+  const sorted=[...NOTICES].sort((a,b)=>(b.pin-a.pin)|| b.date.localeCompare(a.date));
+  $("#notice-list").innerHTML=sorted.map((n,i)=>`
+    <div class="notice-card ${n.pin?'pin':''}" data-i="${i}">
+      <div class="nc-top">
+        <span class="tag ${n.cat}">${n.cat}</span>
+        <span class="nc-date">${n.date.replace(/-/g,'.')}</span>
+      </div>
+      <div class="nc-title">${n.pin?'<span class="pinico">📌</span>':''}${n.title}</div>
+      <div class="nc-prev">${n.body.replace(/\n/g,' ')}</div>
+      ${n.img?`<div class="nc-thumb" style="background-image:url('${n.img}')"></div>`:''}
+    </div>`).join("");
+  $("#notice-list").querySelectorAll(".notice-card").forEach(el=>{
+    el.onclick=()=>openNoticeModal(sorted[+el.dataset.i]);
+  });
+}
+
+/* ================= 정보 ================= */
+let curCat=null;
+function renderInfoChips(){
+  const cats=["전체",...[...new Set(INFO.map(i=>i.cat))]];
+  curCat=curCat||"전체";
+  $("#info-chips").innerHTML=cats.map(c=>`<button class="chip ${c===curCat?'active':''}" data-c="${c}">${c}</button>`).join("");
+  $("#info-chips").querySelectorAll(".chip").forEach(el=>{
+    el.onclick=()=>{curCat=el.dataset.c;renderInfoChips();renderInfoList();};
+  });
+}
+function renderInfoList(){
+  const list=curCat==="전체"?INFO:INFO.filter(i=>i.cat===curCat);
+  $("#info-list").innerHTML=list.map((it,i)=>`
+    <div class="info-card" data-i="${i}">
+      <div class="ic-emoji">${it.emoji}</div>
+      <div class="ic-body">
+        <div class="ic-title">${it.title}</div>
+        <div class="ic-desc">${it.desc}</div>
+      </div>
+      <div class="chev">›</div>
+    </div>`).join("");
+  $("#info-list").querySelectorAll(".info-card").forEach(el=>{
+    el.onclick=()=>openInfoModal(list[+el.dataset.i]);
+  });
+}
+
+/* ================= 혜택 ================= */
+function renderBenefits(){
+  $("#benefit-list").innerHTML=BENEFITS.map((b,i)=>`
+    <div class="benefit-card" data-i="${i}">
+      <div class="bc-banner" style="background:linear-gradient(135deg,${b.color},${b.color}cc)">
+        <span class="bc-disc">${b.disc}</span>
+      </div>
+      <div class="bc-body">
+        <div class="bc-name">${b.name}</div>
+        <div class="bc-prov">${b.prov}</div>
+        <div class="bc-sum">${b.sum}</div>
+        <span class="bc-exp">~${b.exp.replace(/-/g,'.')}까지</span>
+      </div>
+    </div>`).join("");
+  $("#benefit-list").querySelectorAll(".benefit-card").forEach(el=>{
+    el.onclick=()=>openBenefitModal(BENEFITS[+el.dataset.i]);
+  });
+}
+
+/* ================= 모달 빌더 ================= */
+function openEventModal(e){
+  const period=e.start?(e.end?`${e.start} ~ ${e.end}`:e.start):"종일";
+  $("#modal-content").innerHTML=`
+    <div class="mhero"></div>
+    <div class="mbody">
+      <span class="tag ${e.cat}">${e.cat}</span>
+      <h2>${e.title}</h2>
+      <div class="mrow"><span class="k">📅 날짜</span><span class="v">${e.date.replace(/-/g,'.')}</span></div>
+      <div class="mrow"><span class="k">⏰ 시간</span><span class="v">${period}</span></div>
+      <div class="mrow"><span class="k">📍 장소</span><span class="v">${e.place||"미정"}</span></div>
+      <div class="mrow" style="display:block"><span class="k" style="display:block;margin-bottom:6px">📝 안내</span><span class="mtext">${e.desc||"상세 내용이 없습니다."}</span></div>
+    </div>
+    ${e.link?`<div class="mfoot"><a class="btn" href="${e.link}" target="_blank">관련 링크 열기</a></div>`:""}`;
+  showModal(true);
+}
+function openNoticeModal(n){
+  $("#modal-content").innerHTML=`
+    ${n.img?`<div class="mhero img" style="background-image:url('${n.img}')"></div>`:`<div class="mhero"></div>`}
+    <div class="mbody">
+      <div class="mmeta"><span class="tag ${n.cat}">${n.cat}</span><span>${n.date.replace(/-/g,'.')}</span></div>
+      <h2>${n.pin?'📌 ':''}${n.title}</h2>
+      <div class="mtext">${n.body}</div>
+    </div>
+    ${n.link?`<div class="mfoot"><a class="btn" href="${n.link}" target="_blank">자세히 보기</a></div>`:""}`;
+  showModal(true);
+}
+function openInfoModal(it){
+  $("#modal-content").innerHTML=`
+    <div class="mhero"></div>
+    <div class="mbody">
+      <span class="tag 학사">${it.cat}</span>
+      <h2>${it.emoji} ${it.title}</h2>
+      <div class="mtext" style="margin-bottom:12px">${it.desc}</div>
+      ${it.addr?`<div class="mrow"><span class="k">📍 위치</span><span class="v">${it.addr}</span></div>`:""}
+      ${it.tel?`<div class="mrow"><span class="k">📞 연락</span><span class="v">${it.tel}</span></div>`:""}
+    </div>
+    ${it.link?`<div class="mfoot"><a class="btn" href="${it.link}" target="_blank">지도/링크 열기</a></div>`:""}`;
+  showModal(true);
+}
+function openBenefitModal(b){
+  $("#modal-content").innerHTML=`
+    <div class="mhero img" style="background:linear-gradient(135deg,${b.color},${b.color}cc);height:120px;display:flex;align-items:flex-end;padding:14px">
+      <span class="bc-disc" style="background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:14px;padding:6px 13px;border-radius:20px">${b.disc}</span>
+    </div>
+    <div class="mbody">
+      <h2>${b.name}</h2>
+      <div class="mmeta"><span><b>${b.prov}</b></span><span>유효기간 ~${b.exp.replace(/-/g,'.')}</span></div>
+      <div class="mtext">${b.detail}</div>
+    </div>
+    ${b.link?`<div class="mfoot"><a class="btn" href="${b.link}" target="_blank">혜택 받기</a></div>`:""}`;
+  showModal(true);
+}
+
+/* ================= 시트/모달 토글 ================= */
+function showSheet(v){$("#sheet-bd").classList.toggle("show",v);}
+function showModal(v){$("#modal-bd").classList.toggle("show",v);}
+$("#sheet-bd").onclick=e=>{if(e.target===$("#sheet-bd"))showSheet(false);};
+$("#modal-bd").onclick=e=>{if(e.target===$("#modal-bd"))showModal(false);};
+$("#modal-close").onclick=()=>showModal(false);
+// swipe-down to close sheet
+let shy=0;
+$("#sheet").addEventListener("touchstart",e=>shy=e.touches[0].clientY,{passive:true});
+$("#sheet").addEventListener("touchend",e=>{if(e.changedTouches[0].clientY-shy>80)showSheet(false);},{passive:true});
+
+/* ================= 탭 전환 ================= */
+const SUBS={cal:"원우들의 학교생활을 한 곳에",notice:"새 소식을 확인하세요",info:"학교생활에 필요한 정보",benefit:"원우만의 특별한 혜택"};
+document.querySelectorAll(".tabbar button").forEach(btn=>{
+  btn.onclick=()=>{
+    const t=btn.dataset.tab;
+    document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active",b===btn));
+    document.querySelectorAll(".tab-page").forEach(p=>p.classList.remove("active"));
+    $("#page-"+t).classList.add("active");
+    $("#appbar-sub").textContent=SUBS[t];
+    $(".screen").scrollTop=0;
+  };
+});
+
+/* ================= 데이터 로드 & 초기 렌더 ================= */
+function renderAll(){
+  renderCalendar();
+  renderNotices();
+  renderInfoChips();
+  renderInfoList();
+  renderBenefits();
+}
+async function loadData(){
+  renderAll(); // 우선 샘플/기존 데이터로 즉시 표시
+  if(!CONFIG.API_URL) return; // 시트 미연동이면 샘플 유지
+  try{
+    const res = await fetch(CONFIG.API_URL, {cache:"no-store"});
+    const d = await res.json();
+    if(Array.isArray(d.events))   EVENTS   = d.events;
+    if(Array.isArray(d.notices))  NOTICES  = d.notices.map(n=>({...n, pin:(n.pin===true||n.pin==="Y"||n.pin==="y"||n.pin==="TRUE"||n.pin===1)}));
+    if(Array.isArray(d.info))     INFO     = d.info;
+    if(Array.isArray(d.benefits)) BENEFITS = d.benefits.map(b=>({color:"#2d4ec8", ...b}));
+    renderAll(); // 실데이터로 다시 렌더
+  }catch(e){
+    console.warn("구글 시트 불러오기 실패 — 샘플 데이터를 표시합니다.", e);
+  }
+}
+loadData();
+</script>
+</body>
+</html>
